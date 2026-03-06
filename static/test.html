@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hazard Eye – Live Detection</title>
+    <style>
+        :root {
+            --bg: #020617;
+            --bg-elevated: #020617;
+            --panel: #020617;
+            --accent: #06b6d4;
+            --danger: #f97316;
+            --text: #e5e7eb;
+            --muted: #9ca3af;
+            --border: rgba(148, 163, 184, 0.6);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top, #1f2937 0, #020617 45%, #000 100%);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: stretch;
+            justify-content: center;
+            padding: 20px 12px;
+        }
+
+        .shell {
+            width: 100%;
+            max-width: 1120px;
+            border-radius: 26px;
+            background:
+                linear-gradient(135deg, rgba(148, 163, 184, 0.3), transparent 40%),
+                radial-gradient(circle at top left, rgba(56, 189, 248, 0.25), transparent 55%),
+                radial-gradient(circle at bottom right, rgba(248, 113, 113, 0.2), transparent 55%),
+                #020617;
+            padding: 1px;
+            box-shadow:
+                0 22px 70px rgba(15, 23, 42, 0.85),
+                0 0 0 1px rgba(148, 163, 184, 0.28);
+        }
+
+        .card {
+            border-radius: 25px;
+            background:
+                radial-gradient(circle at top left, rgba(15, 23, 42, 0.98), rgba(3, 7, 18, 0.98));
+            padding: 18px 18px 16px;
+            display: grid;
+            grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+            gap: 18px;
+        }
+
+        header {
+            grid-column: 1 / -1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+
+        .title-block {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        h1 {
+            font-size: 1.3rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+
+        .status-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 11px;
+            border-radius: 999px;
+            border: 1px solid rgba(56, 189, 248, 0.8);
+            background: rgba(15, 23, 42, 0.96);
+            font-size: 0.8rem;
+        }
+
+        .status-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 999px;
+            background: radial-gradient(circle at 30% 30%, #22c55e, #16a34a);
+            box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.2);
+        }
+
+        .video-panel {
+            border-radius: 18px;
+            background: radial-gradient(circle at top, rgba(15, 23, 42, 0.96), rgba(2, 6, 23, 0.98));
+            border: 1px solid rgba(55, 65, 81, 0.9);
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .video-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        .video-shell {
+            position: relative;
+            border-radius: 14px;
+            overflow: hidden;
+            background: radial-gradient(circle at center, #020617, #020617);
+            border: 1px solid rgba(15, 23, 42, 0.9);
+            min-height: 220px;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: #020617;
+        }
+
+        .video-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            border-radius: inherit;
+            box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.23);
+        }
+
+        .controls-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            font-size: 0.8rem;
+        }
+
+        .controls-left {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .badge {
+            padding: 4px 9px;
+            border-radius: 999px;
+            border: 1px solid rgba(55, 65, 81, 0.9);
+            background: rgba(15, 23, 42, 0.96);
+            color: var(--muted);
+        }
+
+        .btn {
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.8);
+            background: rgba(15, 23, 42, 0.96);
+            color: var(--text);
+            padding: 6px 12px;
+            font-size: 0.82rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn span.icon {
+            opacity: 0.7;
+        }
+
+        .btn:hover {
+            border-color: rgba(248, 250, 252, 0.8);
+        }
+
+        .alert-panel {
+            border-radius: 18px;
+            background: radial-gradient(circle at top, rgba(15, 23, 42, 1), rgba(15, 23, 42, 0.98));
+            border: 1px solid rgba(55, 65, 81, 0.9);
+            padding: 10px 12px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .alert-panel::before {
+            content: "";
+            position: absolute;
+            inset: -30%;
+            background:
+                radial-gradient(circle at 15% 0, rgba(248, 113, 113, 0.4), transparent 60%),
+                radial-gradient(circle at 95% 20%, rgba(234, 179, 8, 0.25), transparent 60%),
+                radial-gradient(circle at 50% 110%, rgba(56, 189, 248, 0.25), transparent 60%);
+            opacity: 0.75;
+            pointer-events: none;
+        }
+
+        .alert-inner {
+            position: relative;
+            z-index: 1;
+        }
+
+        .alert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        .alert-title {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+        }
+
+        .alert-pill {
+            padding: 3px 7px;
+            border-radius: 999px;
+            border: 1px solid rgba(239, 68, 68, 0.9);
+            background: rgba(15, 23, 42, 0.96);
+            color: #fecaca;
+            font-size: 0.72rem;
+        }
+
+        #alerts {
+            font-size: 0.92rem;
+            min-height: 1.5em;
+            color: #fed7aa;
+        }
+
+        .alert-empty {
+            color: var(--muted);
+        }
+
+        .stack {
+            margin-top: 8px;
+            display: grid;
+            grid-template-columns: 1.1fr 1.1fr;
+            gap: 10px;
+            font-size: 0.75rem;
+        }
+
+        .stack-item {
+            border-radius: 12px;
+            border: 1px solid rgba(55, 65, 81, 0.9);
+            background: rgba(15, 23, 42, 0.96);
+            padding: 7px 9px;
+        }
+
+        .stack-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+            color: var(--muted);
+        }
+
+        .stack-value {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            color: var(--text);
+        }
+
+        footer {
+            grid-column: 1 / -1;
+            margin-top: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.78rem;
+            color: var(--muted);
+        }
+
+        a.link {
+            color: #7dd3fc;
+            text-decoration: none;
+        }
+
+        a.link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 900px) {
+            .card {
+                grid-template-columns: minmax(0, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .card {
+                padding: 14px 12px 12px;
+            }
+
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .controls-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .stack {
+                grid-template-columns: minmax(0, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="shell">
+        <section class="card">
+            <header>
+                <div class="title-block">
+                    <h1>Hazard Eye · Live Detection</h1>
+                    <p class="subtitle">Your camera feed is analysed locally and streamed to the AI backend over WebSocket.</p>
+                </div>
+                <div class="status-chip" id="connection-status">
+                    <span class="status-dot" id="status-dot"></span>
+                    <span id="status-text">Connecting to detection server…</span>
+                </div>
+            </header>
+
+            <div class="video-panel">
+                <div class="video-header">
+                    <span>Camera Feed</span>
+                    <span id="frame-rate">Frame interval: 1.5s</span>
+                </div>
+                <div class="video-shell">
+                    <video id="video" autoplay playsinline muted></video>
+                    <div class="video-overlay"></div>
+                </div>
+                <div class="controls-row">
+                    <div class="controls-left">
+                        <span class="badge">Permission: <span id="camera-status">requesting…</span></span>
+                        <span class="badge">Location: <span id="location-status">requesting…</span></span>
+                    </div>
+                    <div class="controls-right">
+                        <a href="index.html" class="btn">
+                            <span class="icon">←</span>
+                            <span>Back to Home</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="alert-panel">
+                <div class="alert-inner">
+                    <div class="alert-header">
+                        <div class="alert-title">
+                            <span>⚠ ROADSPACE ALERTS</span>
+                            <span class="alert-pill">Beep‑only · No voice</span>
+                        </div>
+                        <span id="last-updated">Awaiting first frame…</span>
+                    </div>
+                    <div id="alerts" class="alert-empty">
+                        Waiting for detections…
+                    </div>
+                    <div class="stack">
+                        <div class="stack-item">
+                            <div class="stack-label">
+                                <span>Last detections</span>
+                                <span id="det-count">0</span>
+                            </div>
+                            <div class="stack-value" id="det-detail">—</div>
+                        </div>
+                        <div class="stack-item">
+                            <div class="stack-label">
+                                <span>Last hazard stored</span>
+                                <span id="hazard-badge">—</span>
+                            </div>
+                            <div class="stack-value" id="hazard-detail">Only road hazards are persisted to the map.</div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <footer>
+                <span>Using <strong>YOLOv8n</strong> and <strong>YOLOv12</strong> on the backend for merged detections.</span>
+                <span>Hazards appear on the <a class="link" href="map.html">shared map</a> once saved.</span>
+            </footer>
+        </section>
+    </main>
+
+    <canvas id="frame-canvas" style="display:none;"></canvas>
+
+    <script>
+        const WS_URL = "ws://127.0.0.1:8000/ws/infer";
+        const BEEP_URL = "https://actions.google.com/sounds/v1/alarms/beep_short.ogg";
+
+        const videoEl = document.getElementById("video");
+        const canvasEl = document.getElementById("frame-canvas");
+        const statusDot = document.getElementById("status-dot");
+        const statusText = document.getElementById("status-text");
+        const cameraStatusEl = document.getElementById("camera-status");
+        const locationStatusEl = document.getElementById("location-status");
+        const alertsEl = document.getElementById("alerts");
+        const detCountEl = document.getElementById("det-count");
+        const detDetailEl = document.getElementById("det-detail");
+        const hazardBadgeEl = document.getElementById("hazard-badge");
+        const hazardDetailEl = document.getElementById("hazard-detail");
+        const lastUpdatedEl = document.getElementById("last-updated");
+
+        let ws = null;
+        let sendIntervalId = null;
+        let lastPosition = { latitude: null, longitude: null };
+        const frameIntervalMs = 1500; // send every 1.5 seconds
+
+        function setConnectionStatus(connected) {
+            if (connected) {
+                statusDot.style.background = "radial-gradient(circle at 30% 30%, #22c55e, #16a34a)";
+                statusDot.style.boxShadow = "0 0 0 6px rgba(34, 197, 94, 0.2)";
+                statusText.textContent = "Connected to detection server";
+            } else {
+                statusDot.style.background = "radial-gradient(circle at 30% 30%, #f97316, #ea580c)";
+                statusDot.style.boxShadow = "0 0 0 6px rgba(248, 181, 129, 0.3)";
+                statusText.textContent = "Disconnected – attempting reconnect…";
+            }
+        }
+
+        function playBeep() {
+            const audio = new Audio(BEEP_URL);
+            audio.play().catch(() => {
+                // Ignore playback errors (e.g. autoplay restrictions)
+            });
+        }
+
+        async function setupCamera() {
+            try {
+                cameraStatusEl.textContent = "requesting…";
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: "environment" },
+                    audio: false,
+                });
+                videoEl.srcObject = stream;
+                cameraStatusEl.textContent = "granted";
+            } catch (err) {
+                console.error("Error accessing camera", err);
+                cameraStatusEl.textContent = "denied";
+            }
+        }
+
+        function setupLocation() {
+            if (!("geolocation" in navigator)) {
+                locationStatusEl.textContent = "unavailable";
+                return;
+            }
+            locationStatusEl.textContent = "requesting…";
+            navigator.geolocation.watchPosition(
+                (pos) => {
+                    lastPosition.latitude = pos.coords.latitude;
+                    lastPosition.longitude = pos.coords.longitude;
+                    locationStatusEl.textContent = "active";
+                },
+                (err) => {
+                    console.warn("Location error:", err);
+                    locationStatusEl.textContent = "denied / error";
+                },
+                {
+                    enableHighAccuracy: true,
+                    maximumAge: 5000,
+                    timeout: 10000,
+                }
+            );
+        }
+
+        function captureFrameAsBase64() {
+            if (!videoEl.videoWidth || !videoEl.videoHeight) {
+                return null;
+            }
+            const maxWidth = 640;
+            const scale = Math.min(1, maxWidth / videoEl.videoWidth);
+            const width = Math.round(videoEl.videoWidth * scale);
+            const height = Math.round(videoEl.videoHeight * scale);
+
+            canvasEl.width = width;
+            canvasEl.height = height;
+
+            const ctx = canvasEl.getContext("2d");
+            ctx.drawImage(videoEl, 0, 0, width, height);
+
+            const dataUrl = canvasEl.toDataURL("image/jpeg", 0.7);
+            const base64 = dataUrl.split(",")[1];
+            return base64;
+        }
+
+        function connectWebSocket() {
+            ws = new WebSocket(WS_URL);
+
+            ws.onopen = () => {
+                setConnectionStatus(true);
+                if (sendIntervalId) {
+                    clearInterval(sendIntervalId);
+                }
+                sendIntervalId = setInterval(() => {
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        const frameBase64 = captureFrameAsBase64();
+                        if (!frameBase64) {
+                            return;
+                        }
+                        const payload = {
+                            image: frameBase64,
+                            latitude: lastPosition.latitude,
+                            longitude: lastPosition.longitude,
+                        };
+                        ws.send(JSON.stringify(payload));
+                    }
+                }, frameIntervalMs);
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+
+                    if (data.error) {
+                        console.error("Backend error:", data.error);
+                        return;
+                    }
+
+                    const detections = data.detections || [];
+                    const hazards = data.hazards || [];
+
+                    const now = new Date();
+                    lastUpdatedEl.textContent = "Last update: " + now.toLocaleTimeString();
+
+                    if (detections.length > 0) {
+                        const labels = detections.map((d) => d.label).join(", ");
+                        alertsEl.textContent = "⚠ Hazard detected: " + labels;
+                        alertsEl.classList.remove("alert-empty");
+                        detCountEl.textContent = detections.length.toString();
+                        detDetailEl.textContent = labels;
+                        playBeep();
+                    }
+
+                    if (hazards.length > 0) {
+                        const lastHazard = hazards[hazards.length - 1];
+                        hazardBadgeEl.textContent = lastHazard.hazard_type || "hazard";
+                        hazardDetailEl.textContent =
+                            `${lastHazard.hazard_type} at (${Number(lastHazard.latitude).toFixed(5)}, ` +
+                            `${Number(lastHazard.longitude).toFixed(5)}) · ${lastHazard.timestamp}`;
+                    }
+                } catch (err) {
+                    console.error("Error parsing WS message", err);
+                }
+            };
+
+            ws.onclose = () => {
+                setConnectionStatus(false);
+                if (sendIntervalId) {
+                    clearInterval(sendIntervalId);
+                    sendIntervalId = null;
+                }
+                setTimeout(connectWebSocket, 2000);
+            };
+
+            ws.onerror = () => {
+                setConnectionStatus(false);
+            };
+        }
+
+        (function init() {
+            setupCamera();
+            setupLocation();
+            connectWebSocket();
+        })();
+    </script>
+</body>
+</html>
+

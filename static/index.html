@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hazard Eye – Home</title>
+    <style>
+        :root {
+            --bg: #050816;
+            --bg-card: #0b1020;
+            --accent: #06b6d4;
+            --accent-soft: rgba(6, 182, 212, 0.15);
+            --text: #e5e7eb;
+            --muted: #9ca3af;
+            --danger: #f97316;
+            --radius: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top, #1f2937 0, #050816 45%, #020617 100%);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .shell {
+            width: 100%;
+            max-width: 960px;
+            border-radius: 28px;
+            background: linear-gradient(135deg, rgba(148, 163, 184, 0.3), transparent 35%),
+                        radial-gradient(circle at top left, rgba(56, 189, 248, 0.25), transparent 55%),
+                        radial-gradient(circle at bottom right, rgba(248, 113, 113, 0.2), transparent 55%),
+                        #020617;
+            padding: 1px;
+            box-shadow:
+                0 24px 80px rgba(15, 23, 42, 0.9),
+                0 0 0 1px rgba(148, 163, 184, 0.28);
+        }
+
+        .card {
+            border-radius: 27px;
+            background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.96), rgba(2, 6, 23, 0.98));
+            padding: 32px 28px 26px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: "";
+            position: absolute;
+            inset: -40%;
+            background:
+                radial-gradient(circle at top, rgba(56, 189, 248, 0.12), transparent 60%),
+                radial-gradient(circle at 80% 20%, rgba(248, 113, 113, 0.18), transparent 60%),
+                radial-gradient(circle at 10% 90%, rgba(59, 130, 246, 0.16), transparent 60%);
+            opacity: 0.9;
+            pointer-events: none;
+        }
+
+        .card-inner {
+            position: relative;
+            z-index: 1;
+        }
+
+        .kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+            color: var(--muted);
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            margin-bottom: 20px;
+        }
+
+        .kicker-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: radial-gradient(circle at 30% 30%, #22c55e, #16a34a);
+            box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.2);
+        }
+
+        h1 {
+            font-size: clamp(2.4rem, 3vw + 1.4rem, 3.4rem);
+            line-height: 1.05;
+            margin-bottom: 10px;
+            letter-spacing: -0.03em;
+        }
+
+        .title-accent {
+            background: linear-gradient(120deg, #38bdf8, #e5e7eb, #fb923c);
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .subtitle {
+            font-size: 1.02rem;
+            color: var(--muted);
+            max-width: 520px;
+            line-height: 1.6;
+            margin-bottom: 28px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: minmax(0, 3fr) minmax(0, 2.5fr);
+            gap: 28px;
+            align-items: stretch;
+        }
+
+        .cta-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 11px 20px;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            font-size: 0.96rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.18s ease-out;
+            outline: none;
+        }
+
+        .btn-primary {
+            background: radial-gradient(circle at 20% 0, #22d3ee, #0284c7);
+            color: #0b1120;
+            border-color: rgba(56, 189, 248, 0.8);
+            box-shadow:
+                0 12px 32px rgba(56, 189, 248, 0.45),
+                0 0 0 1px rgba(8, 47, 73, 0.85);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow:
+                0 18px 40px rgba(56, 189, 248, 0.55),
+                0 0 0 1px rgba(8, 47, 73, 0.95);
+        }
+
+        .btn-ghost {
+            background: rgba(15, 23, 42, 0.92);
+            color: var(--text);
+            border-color: rgba(148, 163, 184, 0.6);
+        }
+
+        .btn-ghost:hover {
+            background: rgba(15, 23, 42, 1);
+            border-color: rgba(148, 163, 184, 0.9);
+            transform: translateY(-1px);
+        }
+
+        .btn-pill-icon {
+            width: 22px;
+            height: 22px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.9);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.9);
+            font-size: 13px;
+        }
+
+        .meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            font-size: 0.82rem;
+            color: var(--muted);
+        }
+
+        .meta-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(55, 65, 81, 0.8);
+        }
+
+        .meta-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 999px;
+            background: #f97316;
+        }
+
+        .side-card {
+            position: relative;
+            border-radius: var(--radius);
+            background: linear-gradient(145deg, rgba(15, 23, 42, 0.9), rgba(8, 47, 73, 0.95));
+            padding: 18px 18px 16px;
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            box-shadow:
+                0 18px 36px rgba(15, 23, 42, 0.95),
+                0 0 0 1px rgba(15, 23, 42, 0.95);
+            overflow: hidden;
+        }
+
+        .side-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .side-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .chip {
+            padding: 4px 9px;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            border: 1px solid rgba(56, 189, 248, 0.7);
+            background: rgba(15, 23, 42, 0.95);
+            color: #7dd3fc;
+        }
+
+        .side-main {
+            margin-bottom: 10px;
+        }
+
+        .side-metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+
+        .side-number {
+            font-size: 2.1rem;
+            font-weight: 700;
+            letter-spacing: -0.04em;
+        }
+
+        .side-caption {
+            font-size: 0.8rem;
+            color: var(--muted);
+            max-width: 150px;
+            text-align: right;
+        }
+
+        .progress-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .progress-segment {
+            flex: 1;
+            height: 5px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.9);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, #22c55e, #eab308);
+        }
+
+        .legend {
+            display: grid;
+            grid-template-columns: 1.1fr 1.2fr;
+            gap: 8px;
+            font-size: 0.78rem;
+            margin-top: 14px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--muted);
+        }
+
+        .legend-swatch {
+            width: 9px;
+            height: 9px;
+            border-radius: 3px;
+        }
+
+        .legend-swatch.det {
+            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+        }
+
+        .legend-swatch.map {
+            background: linear-gradient(135deg, #fb923c, #f97316);
+        }
+
+        .side-footer {
+            margin-top: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.78rem;
+            color: var(--muted);
+        }
+
+        .pill-soft {
+            padding: 3px 8px;
+            border-radius: 999px;
+            border: 1px solid rgba(55, 65, 81, 0.9);
+            background: rgba(15, 23, 42, 0.95);
+        }
+
+        @media (max-width: 800px) {
+            .card {
+                padding: 24px 18px 20px;
+            }
+
+            .grid {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .side-card {
+                order: -1;
+            }
+
+            .subtitle {
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="shell">
+        <section class="card">
+            <div class="card-inner">
+                <div class="grid">
+                    <div>
+                        <div class="kicker">
+                            <span class="kicker-dot"></span>
+                            LIVE ROAD AWARENESS
+                        </div>
+                        <h1>
+                            Hazard <span class="title-accent">Eye</span>
+                        </h1>
+                        <p class="subtitle">
+                            <strong>AI Powered Road Hazard Detection</strong> that watches the road ahead,
+                            alerts riders in real time, and builds a shared hazard map for safer commutes.
+                        </p>
+
+                        <div class="cta-group">
+                            <a href="test.html" class="btn btn-primary">
+                                <span class="btn-pill-icon">▶</span>
+                                <span>Live Detection</span>
+                            </a>
+                            <a href="map.html" class="btn btn-ghost">
+                                <span class="btn-pill-icon">🗺</span>
+                                <span>View Hazard Map</span>
+                            </a>
+                        </div>
+
+                        <div class="meta">
+                            <div class="meta-item">
+                                <span class="meta-dot"></span>
+                                Edge YOLO inference in your browser feed
+                            </div>
+                            <div class="meta-item">
+                                <span>📍</span>
+                                Crowdsourced road hazard reports on a live map
+                            </div>
+                        </div>
+                    </div>
+
+                    <aside class="side-card">
+                        <div class="side-header">
+                            <div class="side-title">Realtime Safety Snapshot</div>
+                            <div class="chip">AI + GEO</div>
+                        </div>
+                        <div class="side-main">
+                            <div class="side-metric">
+                                <div class="side-number">0.8s</div>
+                                <div class="side-caption">
+                                    Typical end‑to‑end alert latency over local Wi‑Fi.
+                                </div>
+                            </div>
+                            <div class="progress-row">
+                                <div class="progress-segment">
+                                    <div class="progress-fill" style="width: 86%;"></div>
+                                </div>
+                                <div class="progress-segment">
+                                    <div class="progress-fill" style="width: 64%; background: linear-gradient(90deg,#fb923c,#f97316);"></div>
+                                </div>
+                            </div>
+                            <div class="legend">
+                                <div class="legend-item">
+                                    <span class="legend-swatch det"></span>
+                                    <span>YOLOv8 / YOLOv12 detections merged per frame.</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-swatch map"></span>
+                                    <span>Road hazards persisted to the shared map.</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="side-footer">
+                            <span class="pill-soft">Designed for low‑power rider devices</span>
+                            <span>Backed by FastAPI · MongoDB</span>
+                        </div>
+                    </aside>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
+
